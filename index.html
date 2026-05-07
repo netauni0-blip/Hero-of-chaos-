@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero of Chaos</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background:#0c0c18;
+  overflow:hidden;
+  font-family:Impact, Arial, sans-serif;
+  color:white;
+}
+
+img{
+  image-rendering:pixelated;
+  user-select:none;
+  pointer-events:none;
+}
+
+.screen{
+  position:absolute;
+  inset:0;
+  display:none;
+}
+
+.screen.active{
+  display:block;
+}
+
+.outline{
+  text-shadow:
+    4px 4px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000;
+}
+
+button{
+  cursor:pointer;
+  font-family:Impact, Arial, sans-serif;
+  border:4px solid #111;
+  border-radius:12px;
+  color:white;
+  font-size:24px;
+  padding:14px 28px;
+  text-shadow:2px 2px #000;
+  box-shadow:
+    inset 0 5px rgba(255,255,255,.3),
+    inset 0 -7px rgba(0,0,0,.3),
+    0 6px #000;
+}
+
+button:active{
+  transform:translateY(4px);
+  box-shadow:
+    inset 0 3px rgba(255,255,255,.2),
+    inset 0 -3px rgba(0,0,0,.3),
+    0 2px #000;
+}
+
+.green{
+  background:linear-gradient(#80ee3d,#2aad19);
+}
+
+.blue{
+  background:linear-gradient(#55aaff,#1767c7);
+}
+
+.red{
+  background:linear-gradient(#ef5a3e,#b82820);
+}
+
+#game{
+  width:100vw;
+  height:100vh;
+  position:relative;
+  overflow:hidden;
+  background:#111;
+}
+
+/* MENU */
+
+#menuScreen{
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,255,255,.08) 0 4px,transparent 5px),
+    radial-gradient(circle at 80% 35%,rgba(255,255,255,.08) 0 5px,transparent 6px),
+    linear-gradient(135deg,#2b2177,#121545);
+  padding:30px;
+}
+
+.title{
+  text-align:center;
+  font-size:58px;
+  color:#fff3b0;
+  margin-bottom:8px;
+}
+
+.subtitle{
+  text-align:center;
+  color:#ffe45b;
+  font-size:25px;
+  margin-bottom:28px;
+}
+
+.heroGrid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:16px;
+}
+
+.heroCard{
+  height:300px;
+  border:5px solid white;
+  border-radius:16px;
+  background:#333;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px;
+  box-shadow:0 8px #000;
+  transition:.12s;
+}
+
+.heroCard.selected{
+  outline:8px solid #ffe84d;
+  transform:translateY(-8px);
+}
+
+.heroCard:nth-child(1){background:linear-gradient(#695df0,#35258f);}
+.heroCard:nth-child(2){background:linear-gradient(#ffd83e,#d89314);}
+.heroCard:nth-child(3){background:linear-gradient(#3fb3ff,#1267ba);}
+.heroCard:nth-child(4){background:linear-gradient(#f46a45,#bd2d22);}
+.heroCard:nth-child(5){background:linear-gradient(#65d64b,#24852d);}
+
+.heroName{
+  font-size:25px;
+  text-align:center;
+  line-height:1;
+}
+
+.heroImg{
+  width:135px;
+  height:135px;
+  object-fit:contain;
+  filter:drop-shadow(5px 6px #0008);
+}
+
+.hearts{
+  font-size:26px;
+}
+
+.menuButtons{
+  text-align:center;
+  margin-top:35px;
+}
+
+/* GAME */
+
+#gameScreen{
+  background:#141414;
+}
+
+.bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:1;
+}
+
+.darkOverlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.12);
+  z-index:2;
+}
+
+.hud{
+  position:absolute;
+  top:18px;
+  left:18px;
+  right:18px;
+  z-index:20;
+  display:grid;
+  grid-template-columns:320px 1fr 95px;
+  gap:14px;
+}
+
+.missionBox,
+.statBox,
+.pauseBox,
+.sidePanel,
+.quizBox,
+.resultBox,
+.shopBox{
+  border:4px solid #6d5331;
+  border-radius:12px;
+  background:#1e1e1a;
+  box-shadow:0 7px #0008;
+}
+
+.missionBox{
+  background:linear-gradient(#ef5a3e,#b82820);
+  padding:14px;
+}
+
+.missionBox h2{
+  font-size:28px;
+}
+
+.missionBox p{
+  font-size:18px;
+  margin-top:4px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  overflow:hidden;
+}
+
+.stat{
+  border-right:3px solid #6d5331;
+  padding:12px;
+  text-align:center;
+  color:#ffe9a8;
+}
+
+.stat:last-child{
+  border-right:none;
+}
+
+.stat small{
+  display:block;
+  color:white;
+  font-size:14px;
+}
+
+.stat span{
+  font-size:25px;
+}
+
+.pauseBox{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+}
+
+.sidePanel{
+  position:absolute;
+  left:18px;
+  top:145px;
+  width:180px;
+  z-index:20;
+  padding:16px;
+  font-size:18px;
+  color:#ffe9a8;
+}
+
+.waterBar{
+  width:100%;
+  height:24px;
+  background:#080808;
+  border:3px solid #2474b7;
+  border-radius:7px;
+  overflow:hidden;
+  margin:8px 0 18px;
+}
+
+.waterFill{
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,#4ad8ff,#167be0);
+}
+
+.world{
+  position:absolute;
+  left:220px;
+  right:20px;
+  top:130px;
+  bottom:20px;
+  border:6px solid #6c6251;
+  overflow:hidden;
+  z-index:5;
+  background:#333;
+}
+
+#player{
+  position:absolute;
+  width:105px;
+  z-index:10;
+  filter:drop-shadow(5px 6px #0007);
+}
+
+.npc{
+  position:absolute;
+  width:90px;
+  z-index:9;
+  filter:drop-shadow(5px 6px #0007);
+}
+
+.helpBubble{
+  position:absolute;
+  background:white;
+  color:#111;
+  border:4px solid #111;
+  padding:6px 14px;
+  border-radius:14px;
+  font-family:Arial, sans-serif;
+  font-weight:900;
+  font-size:20px;
+  z-index:12;
+}
+
+.fire{
+  position:absolute;
+  width:115px;
+  z-index:8;
+  animation:flicker .35s infinite alternate;
+  filter:drop-shadow(0 0 15px orange);
+}
+
+@keyframes flicker{
+  from{transform:scale(.95) rotate(-2deg);}
+  to{transform:scale(1.08) rotate(2deg);}
+}
+
+.waterSpray{
+  position:absolute;
+  width:170px;
+  height:32px;
+  background:linear-gradient(90deg,transparent,#4cc9ff,#d9fbff);
+  border-radius:50%;
+  z-index:11;
+  opacity:0;
+  filter:drop-shadow(0 0 10px #5bdcff);
+}
+
+.waterSpray.show{
+  opacity:1;
+}
+
+.controls{
+  position:absolute;
+  left:240px;
+  bottom:28px;
+  z-index:25;
+  font-family:Arial, sans-serif;
+  font-weight:900;
+  color:#fff2b0;
+  font-size:17px;
+  text-shadow:2px 2px #000;
+}
+
+.quizBox{
+  position:absolute;
+  left:50%;
+  bottom:40px;
+  transform:translateX(-50%);
+  width:720px;
+  padding:20px;
+  z-index:40;
+  display:none;
+  text-align:center;
+  background:#fff0c2;
+  color:#111;
+}
+
+.quizBox h2{
+  font-size:26px;
+  margin-bottom:15px;
+}
+
+.answers{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.answers button{
+  background:linear-gradient(#55aaff,#1767c7);
+  font-size:18px;
+}
+
+/* RESULT */
+
+#resultScreen{
+  background:
+    radial-gradient(circle at 12% 15%,#ffd84b 0 5px,transparent 6px),
+    radial-gradient(circle at 82% 25%,#50d4ff 0 5px,transparent 6px),
+    linear-gradient(135deg,#1b2b70,#101236);
+  padding:40px;
+  text-align:center;
+}
+
+.resultTitle{
+  font-size:64px;
+  margin-bottom:25px;
+  color:#55ee45;
+}
+
+.resultBox{
+  width:620px;
+  margin:0 auto;
+  padding:28px;
+}
+
+.stars{
+  font-size:80px;
+  color:#ffd43a;
+}
+
+.resultStats{
+  font-size:27px;
+  line-height:1.6;
+  color:#ffeec5;
+}
+
+.tip{
+  width:740px;
+  margin:25px auto;
+  background:#ffdd91;
+  color:#111;
+  border:4px solid #6d5331;
+  border-radius:12px;
+  padding:18px;
+  font-family:Arial, sans-serif;
+  font-weight:900;
+  font-size:20px;
+}
+
+.resultButtons{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+}
+
+/* SHOP */
+
+#shopScreen{
+  background:linear-gradient(135deg,#17286b,#101236);
+  padding:40px;
+}
+
+.shopBox{
+  width:650px;
+  margin:30px auto;
+  background:#ffe5a5;
+  color:#111;
+  overflow:hidden;
+}
+
+.shopHead{
+  background:linear-gradient(#e75439,#b62a22);
+  color:white;
+  padding:18px;
+  display:flex;
+  justify-content:space-between;
+  font-size:34px;
+}
+
+.shopItem{
+  display:grid;
+  grid-template-columns:70px 1fr 110px;
+  align-items:center;
+  gap:12px;
+  padding:15px 20px;
+  border-bottom:3px solid #d6b979;
+  font-family:Arial, sans-serif;
+  font-weight:900;
+  font-size:18px;
+}
+
+.shopItem small{
+  display:block;
+  margin-top:4px;
+}
+
+.shopIcon{
+  font-size:44px;
+}
+
+.buyBtn{
+  font-size:17px;
+  padding:10px 16px;
+  background:linear-gradient(#80ee3d,#2aad19);
+}
+
+@media(max-width:950px){
+  .heroGrid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .heroCard{
+    height:220px;
+  }
+
+  .heroImg{
+    width:90px;
+    height:90px;
+  }
+
+  .world{
+    left:10px;
+    right:10px;
+    top:170px;
+  }
+
+  .sidePanel{
+    display:none;
+  }
+
+  .hud{
+    grid-template-columns:1fr;
+  }
+
+  .pauseBox{
+    display:none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+  <!-- MENU -->
+  <section id="menuScreen" class="screen active">
+    <h1 class="title outline">HERO OF CHAOS</h1>
+    <p class="subtitle outline">Choose your hero and train for real-life crises!</p>
+
+    <div class="heroGrid" id="heroGrid"></div>
+
+    <div class="menuButtons">
+      <button class="green" onclick="startGame()">START ADVENTURE!</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="gameScreen" class="screen">
+
+    <div class="world" id="world">
+      <img src="assets/kitchen.png" class="bg">
+      <div class="darkOverlay"></div>
+
+      <img src="assets/fire.png" class="fire" id="fire1" style="left:590px; top:155px;">
+      <img src="assets/fire.png" class="fire" id="fire2" style="left:740px; top:150px;">
+
+      <div class="waterSpray" id="waterSpray"></div>
+
+      <img id="player" src="assets/firefighter.png">
+
+      <div class="helpBubble" id="help1" style="left:320px; top:220px;">HELP!</div>
+      <img class="npc" id="npc1" src="assets/help-boy.png" style="left:350px; top:285px;">
+
+      <div class="helpBubble" id="help2" style="left:520px; top:245px;">HELP!</div>
+      <img class="npc" id="npc2" src="assets/help-girl.png" style="left:550px; top:305px;">
+
+      <div class="helpBubble" id="help3" style="left:790px; top:270px;">HELP!</div>
+      <img class="npc" id="npc3" src="assets/help-boy2.png" style="left:820px; top:330px;">
+    </div>
+
+    <div class="hud">
+      <div class="missionBox outline">
+        <h2>LEVEL 1: KITCHEN FIRE</h2>
+        <p>Save everyone and put out the fire!</p>
+      </div>
+
+      <div class="statBox stats">
+        <div class="stat">
+          <small>SAVED</small>
+          <span id="savedText">0/3</span>
+        </div>
+        <div class="stat">
+          <small>TIME</small>
+          <span id="timeText">02:00</span>
+        </div>
+        <div class="stat">
+          <small>SCORE</small>
+          <span id="scoreText">0</span>
+        </div>
+        <div class="stat">
+          <small>COINS</small>
+          <span id="coinsText">0</span>
+        </div>
+      </div>
+
+      <button class="pauseBox red" onclick="tapOut()">Ⅱ</button>
+    </div>
+
+    <div class="sidePanel">
+      <b>LIVES</b>
+      <div id="livesText">❤️❤️❤️</div>
+      <br>
+      <b>WATER</b>
+      <div class="waterBar">
+        <div class="waterFill" id="waterFill"></div>
+      </div>
+      <b>GOAL</b>
+      <p style="font-family:Arial;font-size:14px;margin-top:8px;">
+        SPACE nära person<br>
+        F nära eld
+      </p>
+    </div>
+
+    <div class="controls">
+      Move: WASD / Arrow Keys · Help: SPACE · Spray water: F · Tap out: pause button
+    </div>
+
+    <div class="quizBox" id="quizBox">
+      <h2 id="questionText">Vad gör du?</h2>
+      <div class="answers" id="answers"></div>
+    </div>
+
+  </section>
+
+  <!-- RESULT -->
+  <section id="resultScreen" class="screen">
+    <h1 class="resultTitle outline" id="resultTitle">LEVEL COMPLETE!</h1>
+
+    <div class="resultBox">
+      <div class="stars outline" id="stars">⭐ ⭐ ⭐</div>
+      <div class="resultStats outline" id="resultStats"></div>
+    </div>
+
+    <div class="tip">
+      💡 <b>CRISIS TIP:</b><br>
+      Vid brand i köket: rädda människor först, larma 112 och släck bara om det är säkert.
+    </div>
+
+    <div class="resultButtons">
+      <button class="blue" onclick="goMenu()">MAIN MENU</button>
+      <button class="green" onclick="openShop()">SHOP</button>
+      <button class="green" onclick="startGame()">PLAY AGAIN</button>
+    </div>
+  </section>
+
+  <!-- SHOP -->
+  <section id="shopScreen" class="screen">
+    <div class="shopBox">
+      <div class="shopHead outline">
+        <span>SHOP</span>
+        <span>🪙 <span id="shopCoins">0</span></span>
+      </div>
+
+      <div id="shopItems"></div>
+
+      <div style="text-align:center;padding:22px;">
+        <button class="blue" onclick="goMenu()">BACK TO MENU</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const heroes = [
+  {
+    name:"NINJA CAT",
+    img:"assets/ninja-cat.png"
+  },
+  {
+    name:"CHAOS BANANA",
+    img:"assets/chaos-banana.png"
+  },
+  {
+    name:"VIKING PENGUIN",
+    img:"assets/viking-penguin.png"
+  },
+  {
+    name:"FIREFIGHTER",
+    img:"assets/firefighter.png"
+  },
+  {
+    name:"SCIENTIST",
+    img:"assets/scientist.png"
+  }
+];
+
+let selectedHero = 3;
+
+let playerX = 120;
+let playerY = 360;
+let speed = 7;
+
+let saved = 0;
+let score = 0;
+let coins = Number(localStorage.getItem("coins") || 0);
+let lives = 3;
+let water = 100;
+let timeLeft = 120;
+let gameOver = false;
+let currentNpc = null;
+
+let timerId = null;
+let animationId = null;
+
+const keys = {};
+
+const questions = {
+  npc1:{
+    question:"En person är rädd nära branden. Vad gör du först?",
+    answers:[
+      {text:"Lugnar personen och hjälper den ut", correct:true},
+      {text:"Springer därifrån ensam", correct:false},
+      {text:"Säger att personen ska släcka branden", correct:false},
+      {text:"Ignorerar personen", correct:false}
+    ]
+  },
+  npc2:{
+    question:"Det brinner i köket. Vad är säkrast?",
+    answers:[
+      {text:"Rädda personer och ring 112", correct:true},
+      {text:"Kasta vatten på brinnande olja", correct:false},
+      {text:"Gömma sig i köket", correct:false},
+      {text:"Ta en bild först", correct:false}
+    ]
+  },
+  npc3:{
+    question:"Det är rök i rummet. Vad ska man göra?",
+    answers:[
+      {text:"Hålla sig lågt och gå mot utgång", correct:true},
+      {text:"Stå upp och andas djupt", correct:false},
+      {text:"Gå närmare elden", correct:false},
+      {text:"Vänta kvar", correct:false}
+    ]
+  }
+};
+
+const shopItemsData = [
+  {name:"Speed Boost", icon:"💨", cost:50, desc:"Spring snabbare i nästa runda."},
+  {name:"Bigger Water Tank", icon:"🚰", cost:75, desc:"Mer vatten för att släcka eld."},
+  {name:"First Aid Kit", icon:"⛑️", cost:60, desc:"Extra liv i nästa runda."},
+  {name:"Hero Outfit", icon:"🦸", cost:40, desc:"Cosmetic upgrade för din hjälte."}
+];
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(screen=>{
+    screen.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+}
+
+function buildHeroMenu(){
+  const grid = document.getElementById("heroGrid");
+  grid.innerHTML = "";
+
+  heroes.forEach((hero, index)=>{
+    const card = document.createElement("div");
+    card.className = "heroCard" + (index === selectedHero ? " selected" : "");
+    card.onclick = function(){
+      selectedHero = index;
+      buildHeroMenu();
+    };
+
+    card.innerHTML = `
+      <div class="heroName outline">${index + 1}.<br>${hero.name}</div>
+      <img class="heroImg" src="${hero.img}">
+      <div class="hearts">❤️❤️❤️</div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+function startGame(){
+  clearInterval(timerId);
+  cancelAnimationFrame(animationId);
+
+  saved = 0;
+  score = 0;
+  lives = 3;
+  water = 100;
+  timeLeft = 120;
+  gameOver = false;
+  currentNpc = null;
+  playerX = 120;
+  playerY = 360;
+
+  document.getElementById("player").src = heroes[selectedHero].img;
+  document.getElementById("player").style.left = playerX + "px";
+  document.getElementById("player").style.top = playerY + "px";
+
+  ["npc1","npc2","npc3"].forEach(id=>{
+    const npc = document.getElementById(id);
+    npc.style.display = "block";
+    npc.dataset.saved = "false";
+  });
+
+  ["help1","help2","help3"].forEach(id=>{
+    document.getElementById(id).style.display = "block";
+  });
+
+  document.getElementById("fire1").style.display = "block";
+  document.getElementById("fire2").style.display = "block";
+  document.getElementById("quizBox").style.display = "none";
+
+  updateHud();
+
+  showScreen("gameScreen");
+
+  timerId = setInterval(timerTick, 1000);
+  gameLoop();
+}
+
+function updateHud(){
+  document.getElementById("savedText").textContent = saved + "/3";
+
+  const min = String(Math.floor(timeLeft / 60)).padStart(2,"0");
+  const sec = String(timeLeft % 60).padStart(2,"0");
+  document.getElementById("timeText").textContent = min + ":" + sec;
+
+  document.getElementById("scoreText").textContent = score;
+  document.getElementById("coinsText").textContent = coins;
+  document.getElementById("livesText").textContent = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+  document.getElementById("waterFill").style.width = water + "%";
+}
+
+function timerTick(){
+  if(gameOver) return;
+
+  timeLeft--;
+
+  if(timeLeft <= 0){
+    endGame(false, "Tiden tog slut!");
+  }
+
+  updateHud();
+}
+
+function gameLoop(){
+  if(gameOver) return;
+
+  movePlayer();
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+function movePlayer(){
+  const quizOpen = document.getElementById("quizBox").style.display === "block";
+  if(quizOpen) return;
+
+  if(keys["ArrowLeft"] || keys["a"]) playerX -= speed;
+  if(keys["ArrowRight"] || keys["d"]) playerX += speed;
+  if(keys["ArrowUp"] || keys["w"]) playerY -= speed;
+  if(keys["ArrowDown"] || keys["s"]) playerY += speed;
+
+  playerX = Math.max(0, Math.min(document.getElementById("world").clientWidth - 110, playerX));
+  playerY = Math.max(0, Math.min(document.getElementById("world").clientHeight - 110, playerY));
+
+  const player = document.getElementById("player");
+  player.style.left = playerX + "px";
+  player.style.top = playerY + "px";
+}
+
+function getDistance(a,b){
+  const ar = a.getBoundingClientRect();
+  const br = b.getBoundingClientRect();
+
+  const ax = ar.left + ar.width / 2;
+  const ay = ar.top + ar.height / 2;
+
+  const bx = br.left + br.width / 2;
+  const by = br.top + br.height / 2;
+
+  return Math.hypot(ax - bx, ay - by);
+}
+
+function interact(){
+  if(gameOver) return;
+
+  const player = document.getElementById("player");
+
+  const npcs = [
+    {
+      id:"npc1",
+      npc:document.getElementById("npc1"),
+      help:document.getElementById("help1")
+    },
+    {
+      id:"npc2",
+      npc:document.getElementById("npc2"),
+      help:document.getElementById("help2")
+    },
+    {
+      id:"npc3",
+      npc:document.getElementById("npc3"),
+      help:document.getElementById("help3")
+    }
+  ];
+
+  for(const item of npcs){
+    if(item.npc.style.display === "none") continue;
+
+    if(getDistance(player,item.npc) < 135){
+      currentNpc = item;
+      openQuiz(item.id);
+      return;
+    }
+  }
+}
+
+function openQuiz(npcId){
+  const quiz = questions[npcId];
+
+  document.getElementById("questionText").textContent = quiz.question;
+
+  const answerBox = document.getElementById("answers");
+  answerBox.innerHTML = "";
+
+  quiz.answers.forEach(answer=>{
+    const btn = document.createElement("button");
+    btn.textContent = answer.text;
+    btn.onclick = function(){
+      answerQuestion(answer.correct);
+    };
+    answerBox.appendChild(btn);
+  });
+
+  document.getElementById("quizBox").style.display = "block";
+}
+
+function answerQuestion(correct){
+  document.getElementById("quizBox").style.display = "none";
+
+  if(correct){
+    currentNpc.npc.style.display = "none";
+    currentNpc.help.style.display = "none";
+    currentNpc.npc.dataset.saved = "true";
+
+    saved++;
+    score += 150;
+    coins += 10;
+  }else{
+    lives--;
+    score = Math.max(0, score - 50);
+    timeLeft = Math.max(0, timeLeft - 10);
+
+    if(lives <= 0){
+      endGame(false, "Du förlorade alla liv!");
+      return;
+    }
+  }
+
+  updateHud();
+  checkWin();
+}
+
+function sprayWater(){
+  if(gameOver) return;
+  if(water <= 0) return;
+
+  water = Math.max(0, water - 8);
+
+  const player = document.getElementById("player");
+  const spray = document.getElementById("waterSpray");
+
+  spray.style.left = playerX + 70 + "px";
+  spray.style.top = playerY + 40 + "px";
+  spray.classList.add("show");
+
+  setTimeout(()=>{
+    spray.classList.remove("show");
+  },180);
+
+  const fires = [
+    document.getElementById("fire1"),
+    document.getElementById("fire2")
+  ];
+
+  fires.forEach(fire=>{
+    if(fire.style.display !== "none" && getDistance(player, fire) < 170){
+      fire.style.display = "none";
+      score += 100;
+      coins += 5;
+    }
+  });
+
+  updateHud();
+  checkWin();
+}
+
+function checkWin(){
+  const fire1Out = document.getElementById("fire1").style.display === "none";
+  const fire2Out = document.getElementById("fire2").style.display === "none";
+
+  if(saved >= 3 && fire1Out && fire2Out){
+    endGame(true, "Du räddade alla och släckte branden!");
+  }
+}
+
+function endGame(win,message){
+  gameOver = true;
+  clearInterval(timerId);
+  cancelAnimationFrame(animationId);
+
+  localStorage.setItem("coins", coins);
+
+  let earnedStars = "⭐";
+  if(saved >= 2) earnedStars = "⭐ ⭐";
+  if(saved === 3 && win) earnedStars = "⭐ ⭐ ⭐";
+
+  document.getElementById("resultTitle").textContent = win ? "LEVEL COMPLETE!" : "GAME OVER";
+  document.getElementById("stars").textContent = earnedStars;
+
+  document.getElementById("resultStats").innerHTML = `
+    ${message}<br>
+    SCORE: ${score}<br>
+    SAVED: ${saved}/3<br>
+    COINS: 🪙 ${coins}
+  `;
+
+  showScreen("resultScreen");
+}
+
+function tapOut(){
+  endGame(false, "Du tappade out!");
+}
+
+function goMenu(){
+  showScreen("menuScreen");
+  buildHeroMenu();
+}
+
+function openShop(){
+  buildShop();
+  showScreen("shopScreen");
+}
+
+function buildShop(){
+  document.getElementById("shopCoins").textContent = coins;
+
+  const shop = document.getElementById("shopItems");
+  shop.innerHTML = "";
+
+  shopItemsData.forEach(item=>{
+    const row = document.createElement("div");
+    row.className = "shopItem";
+
+    row.innerHTML = `
+      <div class="shopIcon">${item.icon}</div>
+      <div>
+        <b>${item.name}</b>
+        <small>${item.desc}</small>
+        <small>Cost: 🪙 ${item.cost}</small>
+      </div>
+      <button class="buyBtn" onclick="buyItem(${item.cost})">BUY</button>
+    `;
+
+    shop.appendChild(row);
+  });
+}
+
+function buyItem(cost){
+  if(coins >= cost){
+    coins -= cost;
+    localStorage.setItem("coins", coins);
+    buildShop();
+  }else{
+    alert("Not enough coins!");
+  }
+}
+
+document.addEventListener("keydown",function(e){
+  keys[e.key] = true;
+
+  if(e.key === " "){
+    interact();
+  }
+
+  if(e.key.toLowerCase() === "f"){
+    sprayWater();
+  }
+
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)){
+    e.preventDefault();
+  }
+});
+
+document.addEventListener("keyup",function(e){
+  keys[e.key] = false;
+});
+
+buildHeroMenu();
+</script>
+
+</body>
+</html>
